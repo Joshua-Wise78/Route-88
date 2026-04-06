@@ -1,0 +1,35 @@
+# 1. Compiled Binaries
+# Ignore the actual executable your code builds into
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+/bin/
+/build/
+route88      # Replace with whatever you name your compiled binary
+
+# 2. Secrets & Environment Variables (CRITICAL)
+# Never commit your OHGO API key or Discord tokens
+.env
+.env.*
+*.local
+
+# 3. Go Workspaces
+go.work
+go.work.sum
+
+# 4. OS Specific Files
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+
+# 5. Editor Temp Files (Helix / Vim / VSCode)
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
