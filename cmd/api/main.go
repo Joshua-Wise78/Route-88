@@ -4,6 +4,7 @@ import (
 	"log"
 	"route88/internal/config"
 	"route88/internal/routes"
+	"route88/internal/services"
 )
 
 func main() {
@@ -13,9 +14,11 @@ func main() {
 		log.Fatal("CRITICAL ERROR: OHGO_API_KEY is missing from the environment")
 	}
 
-	log.Printf("Starting Route-88 API on port %s...", cfg.Port)
+	ohgoClient := services.NewOHGOClient(cfg.OHGOAPIKey)
 
-	router := routes.SetupRouter()
+	router := routes.SetupRouter(ohgoClient)
+
+	log.Printf("Starting Route-88 API on port %s...", cfg.Port)
 
 	err := router.Run(":" + cfg.Port)
 	if err != nil {
