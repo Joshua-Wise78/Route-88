@@ -20,8 +20,8 @@ func SetupRouter(ohgoClient *services.OHGOClient) *gin.Engine {
 	{
 		// Auth Middleware will go here eventually
 
-		v1.GET("/construction" /* handlers.GetConstruction */)
-		v1.GET("/construction/:region" /* handlers.GetConstructionByRegion */)
+		v1.GET("/construction", constructionHandler.GetAll)
+		v1.GET("/construction/:region", constructionHandler.GetByRegion)
 
 		v1.GET("/incidents" /* handlers.GetIncidents */)
 		v1.GET("/slowdowns" /* handlers.GetSlowdowns */)

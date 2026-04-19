@@ -24,8 +24,8 @@ func (h *ConstructionHandler) GetAll(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"endpoint": "GetAllConstruction",
-		"status": "Success",
-		"message": "This will eventually return all active ohio construction zones",
+		"status":   "Success",
+		"message":  "This will eventually return all active ohio construction zones",
 	})
 }
 
@@ -37,7 +37,7 @@ func (h *ConstructionHandler) GetByRegion(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"endpoint": "GetConstructionByRegion",
-		"region": region,
-		"message": "This will return construction data for a specific region of Ohio."
+		"region":   region,
+		"message":  "This will return construction data for a specific region of Ohio.",
 	})
 }
