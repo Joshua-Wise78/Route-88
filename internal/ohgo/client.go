@@ -27,6 +27,12 @@ func NewClient(apiKey string) *Client {
 }
 
 func (c *Client) doGet(endpoint string, query url.Values, dest any) error {
+	if region := query.Get("region"); region != "" {
+		if !IsValidRegion(region) {
+			return fmt.Errorf("invalid OHGO region specified: '%s'", region)
+		}
+	}
+
 	reqURL := fmt.Sprintf("%s/%s", baseURL, endpoint)
 	if len(query) > 0 {
 		reqURL = fmt.Sprintf("%s?%s", reqURL, query.Encode())
@@ -71,6 +77,30 @@ func (c *Client) GetTravelDelays(query url.Values) ([]TravelDelay, error) {
 func (c *Client) GetConstruction(query url.Values) ([]Construction, error) {
 	var result APIResult[Construction]
 	if err := c.doGet("construction", query, &result); err != nil {
+		return nil, err
+	}
+	return result.Results, nil
+}
+
+func (c *Client) GetCameras(query url.Values) ([]Camera, error) {
+	var result APIResult[Camera]
+	if err := c.doGet("cameras", query, &result); err != nil {
+		return nil, err
+	}
+	return result.Results, nil
+}
+
+func (c *Client) GetMessageSigns(query url.Values) ([]MessageSign, error) {
+	var result APIResult[MessageSign]
+	if err := c.doGet("messagesigns", query, &result); err != nil {
+		return nil, err
+	}
+	return result.Results, nil
+}
+
+func (c *Client) GetWeatherSensors(query url.Values) ([]WeatherSensor, error) {
+	var result APIResult[WeatherSensor]
+	if err := c.doGet("weathersensors", query, &result); err != nil {
 		return nil, err
 	}
 	return result.Results, nil

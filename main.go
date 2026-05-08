@@ -26,25 +26,54 @@ func main() {
 	r := gin.Default()
 
 	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "pong",
-		})
+		c.JSON(http.StatusOK, gin.H{"message": "pong"})
 	})
 
-	r.GET("/api/v1/incidents", func(c *gin.Context) {
-		query := c.Request.URL.Query()
-
-		incidents, err := ohgoClient.GetIncidents(query)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch incidents: " + err.Error()})
-			return
+	v1 := r.Group("/api/v1")
+	{
+		helpers := v1.Group("/helpers")
+		{
+			helpers.GET("/regions", func(c *gin.Context) {
+				c.JSON(http.StatusOK, gin.H{
+					"total":   len(ohgo.ValidRegions),
+					"regions": ohgo.ValidRegions,
+				})
+			})
 		}
 
-		c.JSON(http.StatusOK, gin.H{
-			"total":     len(incidents),
-			"incidents": incidents,
-		})
-	})
+		traffic := v1.Group("/traffic")
+		{
+			traffic.GET("/incidents", func(c *gin.Context) {
+				query := c.Request.URL.Query()
+				incidents, err := ohgoClient.GetIncidents(query)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch incidents: " + err.Error()})
+					return
+				}
+				c.JSON(http.StatusOK, gin.H{"total": len(incidents), "data": incidents})
+			})
+
+			traffic.GET("/delays", func(c *gin.Context) {
+				query := c.Request.URL.Query()
+				delays, err := ohgoClient.GetTravelDelays(query)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch delays: " + err.Error()})
+					return
+				}
+				c.JSON(http.StatusOK, gin.H{"total": len(delays), "data": delays})
+			})
+
+			traffic.GET("/construction", func(c *gin.Context) {
+				query := c.Request.URL.Query()
+				construction, err := ohgoClient.GetConstruction(query)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch construction: " + err.Error()})
+					return
+				}
+				c.JSON(http.StatusOK, gin.H{"total": len(construction), "data": construction})
+			})
+		}
+	}
 
 	port := os.Getenv("PORT")
 	if port == "" {
