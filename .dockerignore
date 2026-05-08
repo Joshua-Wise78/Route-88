@@ -1,0 +1,13 @@
+# Git and IDEs
+.git
+.github
+.vscode
+
+__pycache__/
+*.pyc
+venv/
+.env
+
+# Local logs or data
+logs/
+*.log
