@@ -24,6 +24,7 @@ func main() {
 	ohgoClient := ohgo.NewClient(apiKey)
 
 	r := gin.Default()
+	_ = r.SetTrustedProxies(nil)
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"message": "pong"})
@@ -91,7 +92,7 @@ func main() {
 					return
 				}
 				c.JSON(http.StatusOK, gin.H{"total": len(messagesigns), "data": messagesigns})
-			}
+			})
 
 			traffic.GET("/weather", func(c *gin.Context) {
 				query := c.Request.URL.Query()
@@ -101,7 +102,7 @@ func main() {
 					return
 				}
 				c.JSON(http.StatusOK, gin.H{"total": len(weather), "data": weather})
-			}
+			})
 		}
 
 	}
