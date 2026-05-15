@@ -72,7 +72,38 @@ func main() {
 				}
 				c.JSON(http.StatusOK, gin.H{"total": len(construction), "data": construction})
 			})
+
+			traffic.GET("/cameras", func(c *gin.Context) {
+				query := c.Request.URL.Query()
+				cameras, err := ohgoClient.GetCameras(query)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch cameras: " + err.Error()})
+					return
+				}
+				c.JSON(http.StatusOK, gin.H{"total": len(cameras), "data": cameras})
+			})
+
+			traffic.GET("/messagesigns", func(c *gin.Context) {
+				query := c.Request.URL.Query()
+				messagesigns, err := ohgoClient.GetMessageSigns(query)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch signs: " + err.Error()})
+					return
+				}
+				c.JSON(http.StatusOK, gin.H{"total": len(messagesigns), "data": messagesigns})
+			}
+
+			traffic.GET("/weather", func(c *gin.Context) {
+				query := c.Request.URL.Query()
+				weather, err := ohgoClient.GetWeatherSensors(query)
+				if err != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch weather sensors: " + err.Error()})
+					return
+				}
+				c.JSON(http.StatusOK, gin.H{"total": len(weather), "data": weather})
+			}
 		}
+
 	}
 
 	port := os.Getenv("PORT")
