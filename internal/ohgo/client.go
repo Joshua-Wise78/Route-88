@@ -68,7 +68,7 @@ func (c *Client) GetIncidents(query url.Values) ([]Incident, error) {
 
 func (c *Client) GetTravelDelays(query url.Values) ([]TravelDelay, error) {
 	var result APIResult[TravelDelay]
-	if err := c.doGet("traveldelays", query, &result); err != nil {
+	if err := c.doGet("travel-delays", query, &result); err != nil {
 		return nil, err
 	}
 	return result.Results, nil
@@ -92,7 +92,7 @@ func (c *Client) GetCameras(query url.Values) ([]Camera, error) {
 
 func (c *Client) GetMessageSigns(query url.Values) ([]MessageSign, error) {
 	var result APIResult[MessageSign]
-	if err := c.doGet("messagesigns", query, &result); err != nil {
+	if err := c.doGet("digital-signs", query, &result); err != nil {
 		return nil, err
 	}
 	return result.Results, nil

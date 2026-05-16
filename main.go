@@ -3,8 +3,11 @@ package main
 import (
 	"log"
 	"net/http"
+	"net/url"
 	"os"
+	"time"
 
+	"route88/internal/discord"
 	"route88/internal/ohgo"
 
 	"github.com/gin-gonic/gin"
@@ -21,7 +24,22 @@ func main() {
 		log.Fatal("CRITICAL: OHGO_API_KEY is not set in the environment")
 	}
 
+	webhookURL := os.Getenv("DISCORD_WEBHOOK_URL")
+	if webhookURL == "" {
+		log.Println("WARNING: DISCORD_WEBHOOK_URL is not set, auto-alerts are disabled")
+	}
+
 	ohgoClient := ohgo.NewClient(apiKey)
+
+	discordClient := discord.NewClient(webhookURL)
+
+	if webhookURL != "" {
+		go startAlertWorker(ohgoClient, discordClient)
+	}
+
+	if os.Getenv("APP_ENV") == "production" {
+		gin.SetMode(gin.ReleaseMode)
+	}
 
 	r := gin.Default()
 	_ = r.SetTrustedProxies(nil)
@@ -104,7 +122,6 @@ func main() {
 				c.JSON(http.StatusOK, gin.H{"total": len(weather), "data": weather})
 			})
 		}
-
 	}
 
 	port := os.Getenv("PORT")
@@ -115,5 +132,64 @@ func main() {
 	log.Printf("Starting Route-88 server on port %s...", port)
 	if err := r.Run(":" + port); err != nil {
 		log.Fatalf("failed to run server: %v", err)
+	}
+}
+
+func startAlertWorker(ohClient *ohgo.Client, discClient *discord.Client) {
+	log.Println("Starting Discord auto-alert worker for incidents, delays, and construction...")
+
+	ticker := time.NewTicker(10 * time.Second)
+
+	seenIncidents := make(map[string]bool)
+	seenDelays := make(map[string]bool)
+	seenConstruction := make(map[string]bool)
+
+	for range ticker.C {
+		query := url.Values{"region": {"dayton"}}
+
+		incidents, err := ohClient.GetIncidents(query)
+		if err == nil {
+			for _, incident := range incidents {
+				if (incident.RoadStatus == "CLOSED" || incident.RoadStatus == "Restricted") && !seenIncidents[incident.ID] {
+					embed := discord.FormatIncident(incident)
+					payload := discord.WebHookPayload{Username: "Route-88 Traffic Monitor", Embeds: []discord.Embed{embed}}
+					if err := discClient.Send(payload); err == nil {
+						seenIncidents[incident.ID] = true
+					}
+				}
+			}
+		} else {
+			log.Printf("Worker failed to fetch incidents: %v\n", err)
+		}
+
+		delays, err := ohClient.GetTravelDelays(query)
+		if err == nil {
+			for _, delay := range delays {
+				if delay.DelayTime > 5 && !seenDelays[delay.ID] {
+					embed := discord.FormatDelay(delay)
+					payload := discord.WebHookPayload{Username: "Route-88 Traffic Monitor", Embeds: []discord.Embed{embed}}
+					if err := discClient.Send(payload); err == nil {
+						seenDelays[delay.ID] = true
+					}
+				}
+			}
+		} else {
+			log.Printf("Worker failed to fetch delays: %v\n", err)
+		}
+
+		construction, err := ohClient.GetConstruction(query)
+		if err == nil {
+			for _, c := range construction {
+				if c.IsActive && !seenConstruction[c.ID] {
+					embed := discord.FormatConstruction(c)
+					payload := discord.WebHookPayload{Username: "Route-88 Traffic Monitor", Embeds: []discord.Embed{embed}}
+					if err := discClient.Send(payload); err == nil {
+						seenConstruction[c.ID] = true
+					}
+				}
+			}
+		} else {
+			log.Printf("Worker failed to fetch construction: %v\n", err)
+		}
 	}
 }
