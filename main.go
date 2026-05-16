@@ -138,7 +138,7 @@ func main() {
 func startAlertWorker(ohClient *ohgo.Client, discClient *discord.Client) {
 	log.Println("Starting Discord auto-alert worker for incidents, delays, and construction...")
 
-	ticker := time.NewTicker(10 * time.Second)
+	ticker := time.NewTicker(10 * time.Minute)
 
 	seenIncidents := make(map[string]bool)
 	seenDelays := make(map[string]bool)
