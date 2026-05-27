@@ -1,11 +1,19 @@
+version: '3.8'
+
 services:
-  route88:
-    build: .
-    container_name: route88
+  db:
+    image: postgres:16-alpine
+    container_name: route88-postgres
     restart: unless-stopped
-    ports:
-      - "8080:8080"
-    env_file:
-      - .env
     environment:
-      - APP_ENV=production
+      POSTGRES_USER: route88_user
+      POSTGRES_PASSWORD: route88_password
+      POSTGRES_DB: route88_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+volumes:
+  pgdata:

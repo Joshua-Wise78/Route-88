@@ -1,12 +1,14 @@
 package main
 
 import (
+	"encoding/csv"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
 	"time"
 
+	"route88/internal/db"
 	"route88/internal/discord"
 	"route88/internal/ohgo"
 
@@ -24,17 +26,26 @@ func main() {
 		log.Fatal("CRITICAL: OHGO_API_KEY is not set in the environment")
 	}
 
+	dbConnStr := os.Getenv("DATABASE_URL")
+	if dbConnStr == "" {
+		log.Fatal("CRITICAL: DATABASE_URL is not set in the environment")
+	}
+
 	webhookURL := os.Getenv("DISCORD_WEBHOOK_URL")
 	if webhookURL == "" {
 		log.Println("WARNING: DISCORD_WEBHOOK_URL is not set, auto-alerts are disabled")
 	}
 
 	ohgoClient := ohgo.NewClient(apiKey)
-
 	discordClient := discord.NewClient(webhookURL)
 
+	store, err := db.NewStore(dbConnStr)
+	if err != nil {
+		log.Fatalf("Failed to connect to database: %v", err)
+	}
+
 	if webhookURL != "" {
-		go startAlertWorker(ohgoClient, discordClient)
+		go startAlertWorker(ohgoClient, discordClient, store)
 	}
 
 	if os.Getenv("APP_ENV") == "production" {
@@ -122,6 +133,11 @@ func main() {
 				c.JSON(http.StatusOK, gin.H{"total": len(weather), "data": weather})
 			})
 		}
+
+		export := v1.Group("/export")
+		{
+			export.GET("/incidents.csv", exportIncidentsCSV(store))
+		}
 	}
 
 	port := os.Getenv("PORT")
@@ -135,7 +151,47 @@ func main() {
 	}
 }
 
-func startAlertWorker(ohClient *ohgo.Client, discClient *discord.Client) {
+func exportIncidentsCSV(store *db.Store) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		incidents, err := store.GetAllIncidents()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch data from database"})
+			return
+		}
+
+		c.Header("Content-Disposition", `attachment; filename="route88_incidents.csv"`)
+		c.Header("Content-Type", "text/csv")
+		c.Header("Transfer-Encoding", "chunked")
+
+		writer := csv.NewWriter(c.Writer)
+		defer writer.Flush()
+
+		// Write Header
+		if err := writer.Write([]string{"ID", "Location", "Description", "Category", "Direction", "RouteName", "RoadStatus"}); err != nil {
+			c.AbortWithError(http.StatusInternalServerError, err)
+			return
+		}
+
+		// Write Data
+		for _, inc := range incidents {
+			row := []string{
+				inc.ID,
+				inc.Location,
+				inc.Description,
+				inc.Category,
+				inc.Direction,
+				inc.RouteName,
+				inc.RoadStatus,
+			}
+			if err := writer.Write(row); err != nil {
+				c.AbortWithError(http.StatusInternalServerError, err)
+				return
+			}
+		}
+	}
+}
+
+func startAlertWorker(ohClient *ohgo.Client, discClient *discord.Client, store *db.Store) {
 	log.Println("Starting Discord auto-alert worker for incidents, delays, and construction...")
 
 	ticker := time.NewTicker(10 * time.Minute)
@@ -150,6 +206,10 @@ func startAlertWorker(ohClient *ohgo.Client, discClient *discord.Client) {
 		incidents, err := ohClient.GetIncidents(query)
 		if err == nil {
 			for _, incident := range incidents {
+				if dbErr := store.InsertIncident(incident); dbErr != nil {
+					log.Printf("Worker failed to insert incident into db: %v\n", dbErr)
+				}
+
 				if (incident.RoadStatus == "CLOSED" || incident.RoadStatus == "Restricted") && !seenIncidents[incident.ID] {
 					embed := discord.FormatIncident(incident)
 					payload := discord.WebHookPayload{Username: "Route-88 Traffic Monitor", Embeds: []discord.Embed{embed}}
