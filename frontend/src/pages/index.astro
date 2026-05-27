@@ -1,18 +1,8 @@
 ---
-const response = await fetch('http://localhost:8080/api/v1/traffic/incidents?region=dayton');
-const trafficData = await response.json();
-
-console.log(trafficData);
+import MainLayout from '../layouts/MainLayout.astro';
 ---
 
-<h1>Dayton Traffic Incidents</h1>
+<MainLayout title="Ohio Real-Time Traffic Dashboard">
 
-{trafficData.data && trafficData.data.length > 0 ? (
-  <ul>
-    {trafficData.data.map((incident) => (
-      <li><strong>{incident.routeName}</strong>: {incident.description}</li>
-    ))}
-  </ul>
-) : (
-  <p>No active incidents right now! Traffic is flowing smoothly.</p>
-)}
+</MainLayout>
+
