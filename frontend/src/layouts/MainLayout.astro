@@ -1,0 +1,49 @@
+---
+const { title } = Astro.props;
+import '../styles/global.css';
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    
+    <meta 
+      http-equiv="Content-Security-Policy" 
+      content="default-src 'self'; connect-src 'self' http://localhost:8080 http://100.102.78.73:8081; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline';" 
+    />
+  </head>
+  <body class="bg-slate-50 text-slate-900 font-sans min-h-screen">
+    
+    <nav class="bg-slate-900 text-white shadow-md">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+          <div class="flex-shrink-0 font-bold text-xl tracking-tight">
+            Route-88 Dashboard
+          </div>
+          
+          <div class="hidden sm:block">
+            <div class="ml-10 flex items-baseline space-x-4">
+              <a href="/" class="bg-slate-800 text-white px-3 py-2 rounded-md text-sm font-medium">Incidents</a>
+              <a href="/delays" class="text-slate-300 hover:bg-slate-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">Delays</a>
+              <a href="/construction" class="text-slate-300 hover:bg-slate-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">Construction</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="sm:hidden border-t border-slate-700">
+        <div class="px-2 pt-2 pb-3 space-y-1 flex justify-around">
+          <a href="/" class="bg-slate-800 text-white block px-3 py-2 rounded-md text-base font-medium text-center w-full mx-1">Incidents</a>
+          <a href="/delays" class="text-slate-300 hover:bg-slate-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium text-center w-full mx-1">Delays</a>
+        </div>
+      </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <slot />
+    </main>
+    
+  </body>
+</html>

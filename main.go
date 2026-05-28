@@ -12,6 +12,7 @@ import (
 	"route88/internal/discord"
 	"route88/internal/ohgo"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
@@ -53,6 +54,14 @@ func main() {
 	}
 
 	r := gin.Default()
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:4321", "http://127.0.0.1:4321"},
+		AllowMethods:     []string{"GET", "POST", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+	}))
+
 	_ = r.SetTrustedProxies(nil)
 
 	r.GET("/ping", func(c *gin.Context) {

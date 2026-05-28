@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   db:
     image: postgres:16-alpine
@@ -14,6 +12,19 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  app:
+    build: .
+    container_name: route88-app
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    environment:
+      DATABASE_URL: "postgres://route88_user:route88_password@db:5432/route88_db?sslmode=disable"
+      OHGO_API_KEY: "${OHGO_API_KEY}"
+      DISCORD_WEBHOOK_URL: "${DISCORD_WEBHOOK_URL}"
+    depends_on:
+      - db
 
 volumes:
   pgdata:
