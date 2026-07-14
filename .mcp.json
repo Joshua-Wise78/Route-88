@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "iwe": {
+      "command": "iwec",
+      "args": ["--project", "."]
+    }
+  }
+}
