@@ -1,15 +1,11 @@
-export interface Construction {
-   id: string;
-   latitude: number;
-   longitude: number;
-   description: string;
-   category: string;
-   direction: string;
-   routeName: string;
+import { Base } from './ohgo';
+
+export interface Construction extends Base {
    status: string;
+   district: string;
    startDate: string;
-   endDate?: string;
-   workZone?: ConstructionWorkZone[];
+   endDate: string;
+   workZones?: ConstructionWorkZone[];
    detours?: ConstructionDetour[];
 }
 
