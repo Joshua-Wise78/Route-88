@@ -1,9 +1,11 @@
-export const ENV = {
-   DATABASE_URL = process.env.DATABASE_URL as string,
-   OHGO_API_KEY = process.env.OHGO_API_KEY as string,
-}
+import * as dotenv from 'dotenv';
+import { z } from 'zod';
 
-if (!ENV.DATABASE_URL || !ENV.OHGO_API_KEY) {
-   console.error("CRITICAL: Missing enviornment variables.");
-   process.exit(1);
-}
+dotenv.config();
+
+const envSchema = z.object({
+   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
+   OHGO_API_KEY: z.string().min(1, "API_KEY is required"),
+});
+
+export const env = envSchema.parse(process.env);
