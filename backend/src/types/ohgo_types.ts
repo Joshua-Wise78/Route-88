@@ -24,8 +24,8 @@ export interface OhgoApiResponse<T> {
 	results: T[];
 }
 
-export * from "./ohgo/construction";
-export * from "./ohgo/incident";
-export * from "./ohgo/params";
-export * from "./ohgo/slowdown";
-export * from "./ohgo/wzdx";
+export * from "./ohgo_types/construction";
+export * from "./ohgo_types/incident";
+export * from "./ohgo_types/params";
+export * from "./ohgo_types/slowdown";
+export * from "./ohgo_types/wzdx";
