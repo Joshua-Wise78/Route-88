@@ -1,97 +1,36 @@
-*.iwe
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
-*.test
-*.out
-*.agents
-/bin/
-/build/
-route88      
+# dependencies (bun install)
+node_modules
 
+.agents
+
+# output
+out
+dist
+*.tgz
+
+# code coverage
+coverage
+*.lcov
+
+# logs
+logs
+_.log
+report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
+
+# dotenv environment variable files
 .env
-.env.*
-*.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
 
-go.work
-go.work.sum
-
-.DS_Store
-.AppleDouble
-.LSOverride
-Thumbs.db
-
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-node_modules/
-/triage/
-/.compiler/
-dist/
-temp/
-*.tsbuildinfo
-.DS_Store
-.vercel
-.netlify
-_site/
-.astro/
-scripts/smoke/*-main/
-scripts/memory/project/src/pages/
-benchmark/projects/
-benchmark/results/
-test-results/
-*.log
-package-lock.json
-.turbo/
+# caches
 .eslintcache
-.pnpm-store
-.vscode-test/
-.claude
+.cache
+*.tsbuildinfo
 
-packages/astro/src/**/*.prebuilt.ts
-packages/astro/src/**/*.prebuilt-dev.ts
-packages/astro/test/units/_temp-fixtures/*
-!packages/astro/test/units/_temp-fixtures/package.json
-packages/integrations/**/.netlify/
-
+# IntelliJ based IDEs
 .idea
 
-packages/**/test/**/fixtures/**/.astro/
-packages/**/test/**/fixtures/**/env.d.ts
-packages/**/e2e/**/fixtures/**/.astro/
-packages/**/e2e/**/fixtures/**/env.d.ts
-examples/**/.astro/
-examples/**/env.d.ts
-
-*.code-workspace
-packages/astro/e2e/fixtures/cloudflare/.wrangler/deploy/config.json
-
-node_modules/
-
-.env
-.env.local
-.env.*
-!.env.example
-
-dist/
-build/
-*.tsbuildinfo
-
-.drizzle/
-
-logs
-*.log
-
-*.swp
-*.swo
-*~
-
+# Finder (MacOS) folder config
 .DS_Store
-Thumbs.db
-.vscode/
-.idea/
