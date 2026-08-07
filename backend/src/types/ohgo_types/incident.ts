@@ -1,4 +1,4 @@
-import { Base } from './ohgo';
+import { Base } from '../ohgo';
 
 export interface Incident extends Base {
    roadStatus: string;
