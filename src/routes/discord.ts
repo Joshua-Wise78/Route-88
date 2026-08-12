@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { ohgoService } from "../services/ohgo";
+import { webhookService } from "../services/discord";
 
 const discordRouter = new Hono();
 const DEFAULT_PARAMS = { "page-all": true, region: "sw-ohio" };
@@ -8,6 +9,14 @@ discordRouter.get("/incidents", async (c) => {
 	try {
 		const params = { ...DEFAULT_PARAMS, ...c.req.query() };
 		const data = await ohgoService.getIncidents(params);
+		
+		// Example background trigger
+		if (data.results && data.results.length > 0) {
+			webhookService.notifyNewIncident(data.results[0]).catch(err => 
+				console.error("Background webhook failed:", err)
+			);
+		}
+
 		return c.json(data);
 	} catch (error) {
 		console.error("Error fetching incidents:", error);
@@ -38,22 +47,27 @@ discordRouter.get("/construction", async (c) => {
 });
 
 discordRouter.get("/daily-feed", async (c) => {
-	try {
-		const params = { ...DEFAULT_PARAMS, ...c.req.query() };
-		// Daily feed needs construction and recent slowdowns
-		const [construction, slowdowns] = await Promise.all([
-			ohgoService.getConstruction(params),
-			ohgoService.getDangerousSlowdowns(params),
-		]);
+	const params = { ...DEFAULT_PARAMS, ...c.req.query() };
 
-		return c.json({
-			construction: construction.results || [],
-			slowdowns: slowdowns.results || [],
+	// Fire and forget
+	Promise.all([
+		ohgoService.getConstruction(params),
+		ohgoService.getDangerousSlowdowns(params),
+	])
+		.then(async ([construction, slowdowns]) => {
+			await webhookService.sendDailyFeed(
+				construction.results || [],
+				slowdowns.results || [],
+			);
+		})
+		.catch((error) => {
+			console.error("Background daily feed processing failed:", error);
 		});
-	} catch (error) {
-		console.error("Error fetching daily feed data:", error);
-		return c.json({ error: "Failed to fetch daily feed from OHGO" }, 500);
-	}
+
+	return c.json(
+		{ message: "Daily feed processing started in the background." },
+		202,
+	);
 });
 
 export default discordRouter;
