@@ -17,5 +17,17 @@ services:
     restart: unless-stopped
     ports:
       - "8080:8080"
+
+  api:
+    build: .
+    container_name: route88_api
+    restart: unless-stopped
+    ports:
+      - "3333:3333"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+
 volumes:
   postgres_data:
