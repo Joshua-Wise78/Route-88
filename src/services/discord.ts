@@ -1,22 +1,19 @@
+import { inArray } from "drizzle-orm";
 import { env } from "../config/env";
-import {
-	type DiscordEmbed,
-	type DiscordWebhookPayload,
-	DiscordColors,
-} from "../types/discord";
-import type {
-	Incident,
-	Construction,
-	DangerousSlowDown,
-} from "../types/ohgo_types";
 import { db } from "../db";
 import { roadEvents } from "../db/schema";
-import { inArray } from "drizzle-orm";
+import {
+	DiscordColors,
+	type DiscordEmbed,
+	type DiscordWebhookPayload,
+} from "../types/discord";
+import type {
+	Construction,
+	DangerousSlowDown,
+	Incident,
+} from "../types/ohgo_types";
 
 export const webhookService = {
-	/**
-	 * Internal helper to send the webhook payload to a given URL
-	 */
 	async sendWebhook(
 		url: string | undefined,
 		payload: DiscordWebhookPayload,
@@ -45,8 +42,6 @@ export const webhookService = {
 			console.error("Failed to send webhook to Discord:", error);
 		}
 	},
-
-	// --- FORMATTERS ---
 
 	formatIncidentToEmbed(incident: Incident): DiscordEmbed {
 		return {
@@ -143,39 +138,49 @@ export const webhookService = {
 		const newConstruction: Construction[] = [];
 		const newSlowdowns: DangerousSlowDown[] = [];
 
-		// Filter new construction
-		if (construction.length > 0) {
-			const ids = construction.map((c) => c.id);
+		const targetRouteRegex = /\b(75|675|70)\b/;
+		const filterRoutes = (item: { routeName?: string; location?: string }) => {
+			const str = `${item.routeName || ""} ${item.location || ""}`;
+			return targetRouteRegex.test(str);
+		};
+
+		const filteredConstruction = construction.filter(filterRoutes);
+		const filteredSlowdowns = slowdowns.filter(filterRoutes);
+
+		if (filteredConstruction.length > 0) {
+			const ids = filteredConstruction.map((c) => c.id);
 			const existing = await db
 				.select({ id: roadEvents.id })
 				.from(roadEvents)
 				.where(inArray(roadEvents.id, ids));
 			const existingIds = new Set(existing.map((e) => e.id));
+			const processedIds = new Set<string>();
 
-			for (const item of construction) {
-				if (!existingIds.has(item.id)) {
+			for (const item of filteredConstruction) {
+				if (!existingIds.has(item.id) && !processedIds.has(item.id)) {
+					processedIds.add(item.id);
 					newConstruction.push(item);
 				}
 			}
 		}
 
-		// Filter new slowdowns
-		if (slowdowns.length > 0) {
-			const ids = slowdowns.map((s) => s.id);
+		if (filteredSlowdowns.length > 0) {
+			const ids = filteredSlowdowns.map((s) => s.id);
 			const existing = await db
 				.select({ id: roadEvents.id })
 				.from(roadEvents)
 				.where(inArray(roadEvents.id, ids));
 			const existingIds = new Set(existing.map((e) => e.id));
+			const processedIds = new Set<string>();
 
-			for (const item of slowdowns) {
-				if (!existingIds.has(item.id)) {
+			for (const item of filteredSlowdowns) {
+				if (!existingIds.has(item.id) && !processedIds.has(item.id)) {
+					processedIds.add(item.id);
 					newSlowdowns.push(item);
 				}
 			}
 		}
 
-		// NOTE: Discord limits webhooks to 10 embeds per message.
 		const embeds: DiscordEmbed[] = [];
 		const eventsToInsert: (typeof roadEvents.$inferInsert)[] = [];
 
@@ -210,17 +215,15 @@ export const webhookService = {
 			return;
 		}
 
-		// Save the new events to the database so we don't send them again tomorrow
 		if (eventsToInsert.length > 0) {
 			await db.insert(roadEvents).values(eventsToInsert).onConflictDoNothing();
 		}
 
 		const payload: DiscordWebhookPayload = {
-			content: "🌅 **Daily Traffic Digest**",
+			content: "**Daily Traffic Digest**",
 			embeds: embeds,
 		};
 
-		// Sending to incidents channel by default for the daily feed
-		await this.sendWebhook(env.DISCORD_INCIDENTS_WEBHOOK_URL, payload);
+		await this.sendWebhook(env.DISCORD_DAILY_WEBHOOK_URL, payload);
 	},
 };

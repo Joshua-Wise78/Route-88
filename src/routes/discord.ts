@@ -1,21 +1,33 @@
 import { Hono } from "hono";
-import { ohgoService } from "../services/ohgo";
+import { bearerAuth } from "hono/bearer-auth";
+import { env } from "../config/env";
 import { webhookService } from "../services/discord";
+import { ohgoService } from "../services/ohgo";
+import { z } from "zod";
+import { zValidator } from "@hono/zod-validator";
 
 const discordRouter = new Hono();
+
+discordRouter.use("/*", bearerAuth({ token: env.INTERNAL_API_KEY }));
 const DEFAULT_PARAMS = { "page-all": true, region: "sw-ohio" };
 
-discordRouter.get("/incidents", async (c) => {
+const ohgoQuerySchema = z.object({
+	region: z.string().optional(),
+	radius: z.string().optional(),
+	"map-bounds-sw": z.string().optional(),
+	"map-bounds-ne": z.string().optional(),
+	"page-size": z.coerce.number().optional(),
+	page: z.coerce.number().optional(),
+	"page-all": z.enum(["true", "false"]).optional(),
+	"include-future": z.enum(["true", "false"]).optional(),
+	"future-only": z.enum(["true", "false"]).optional(),
+});
+
+discordRouter.get("/incidents", zValidator("query", ohgoQuerySchema), async (c) => {
 	try {
-		const params = { ...DEFAULT_PARAMS, ...c.req.query() };
+		const safeQuery = c.req.valid("query");
+		const params = { ...DEFAULT_PARAMS, ...safeQuery } as any;
 		const data = await ohgoService.getIncidents(params);
-		
-		// Example background trigger
-		if (data.results && data.results.length > 0) {
-			webhookService.notifyNewIncident(data.results[0]).catch(err => 
-				console.error("Background webhook failed:", err)
-			);
-		}
 
 		return c.json(data);
 	} catch (error) {
@@ -24,9 +36,10 @@ discordRouter.get("/incidents", async (c) => {
 	}
 });
 
-discordRouter.get("/slowdowns", async (c) => {
+discordRouter.get("/slowdowns", zValidator("query", ohgoQuerySchema), async (c) => {
 	try {
-		const params = { ...DEFAULT_PARAMS, ...c.req.query() };
+		const safeQuery = c.req.valid("query");
+		const params = { ...DEFAULT_PARAMS, ...safeQuery } as any;
 		const data = await ohgoService.getDangerousSlowdowns(params);
 		return c.json(data);
 	} catch (error) {
@@ -35,9 +48,10 @@ discordRouter.get("/slowdowns", async (c) => {
 	}
 });
 
-discordRouter.get("/construction", async (c) => {
+discordRouter.get("/construction", zValidator("query", ohgoQuerySchema), async (c) => {
 	try {
-		const params = { ...DEFAULT_PARAMS, ...c.req.query() };
+		const safeQuery = c.req.valid("query");
+		const params = { ...DEFAULT_PARAMS, ...safeQuery } as any;
 		const data = await ohgoService.getConstruction(params);
 		return c.json(data);
 	} catch (error) {
@@ -46,8 +60,9 @@ discordRouter.get("/construction", async (c) => {
 	}
 });
 
-discordRouter.get("/daily-feed", async (c) => {
-	const params = { ...DEFAULT_PARAMS, ...c.req.query() };
+discordRouter.get("/daily-feed", zValidator("query", ohgoQuerySchema), async (c) => {
+	const safeQuery = c.req.valid("query");
+	const params = { ...DEFAULT_PARAMS, ...safeQuery } as any;
 
 	// Fire and forget
 	Promise.all([
