@@ -11,3 +11,4 @@ venv/
 # Local logs or data
 logs/
 *.log
+node_modules
