@@ -4,7 +4,8 @@ WORKDIR /app
 
 # Install dependencies first for better caching
 COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile
+RUN --mount=type=cache,target=/root/.bun/install/cache \
+    bun install --frozen-lockfile
 
 # Copy the rest of the application
 COPY . .
