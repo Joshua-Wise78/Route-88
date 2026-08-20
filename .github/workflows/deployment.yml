@@ -19,7 +19,7 @@ jobs:
           port: 22
           script: |
             # Update this path to match where the project is located on your server
-            cd /var/www/Route-88
+            cd /mnt/appdata/stacks/route88
 
             git pull origin main
             
