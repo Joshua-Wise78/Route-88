@@ -59,6 +59,54 @@ export function startScheduler() {
 		}
 	});
 
+	new Cron("*/10 * * * *", { protect: true }, async () => {
+		console.log("Polling OHGO for new slowdowns...");
+		try {
+			const data = await ohgoService.getDangerousSlowdowns(DEFAULT_PARAMS);
+			const slowdowns = data.results || [];
+
+			if (slowdowns.length === 0) return;
+
+			const ids = slowdowns.map((s) => s.id);
+			const existing = await db
+				.select({ id: roadEvents.id })
+				.from(roadEvents)
+				.where(inArray(roadEvents.id, ids));
+
+			const existingIds = new Set(existing.map((e) => e.id));
+
+			const processedIds = new Set<string>();
+			const newSlowdowns = slowdowns.filter((s) => {
+				if (existingIds.has(s.id) || processedIds.has(s.id)) return false;
+				processedIds.add(s.id);
+				return true;
+			});
+
+			for (const slowdown of newSlowdowns) {
+				await webhookService.notifyNewSlowdown(slowdown);
+
+				await db
+					.insert(roadEvents)
+					.values({
+						id: slowdown.id,
+						eventType: "slowdown",
+						location: slowdown.location || "",
+						description: slowdown.description || "",
+						latitude: slowdown.latitude || 0,
+						longitude: slowdown.longitude || 0,
+						rawPayload: slowdown,
+					})
+					.onConflictDoNothing();
+			}
+
+			if (newSlowdowns.length > 0) {
+				console.log(`Pushed ${newSlowdowns.length} new slowdowns to Discord!`);
+			}
+		} catch (error) {
+			console.error("Slowdown polling failed:", error);
+		}
+	});
+
 	new Cron(
 		"0 8 * * *",
 		{ timezone: "America/New_York", protect: true },
