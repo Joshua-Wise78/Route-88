@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { env } from "./config/env";
 import discordRouter from "./routes/discord";
 import { startScheduler } from "./services/scheduler";
+import mobileRouter from "./routes/mobile";
 
 const app = new Hono();
 
@@ -9,6 +10,7 @@ app.get("/", (c) => c.text("Route-88 Backend API is running!"));
 
 // Mount the Discord routes
 app.route("/api/discord", discordRouter);
+app.route("/api/mobile", mobileRouter);
 
 // Start the background jobs
 startScheduler();
