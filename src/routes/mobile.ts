@@ -8,13 +8,6 @@ import {
 	LocationQuerySchema,
 } from "../types/mobile/mobile";
 
-/*
- * Todo:
- *    1. Need to setup either JWT or some better bearerAuth
- *    2. Status checker for mobile side.
- *
- **/
-
 const mobileRouter = new Hono();
 
 mobileRouter.use("/*", bearerAuth({ token: env.INTERNAL_API_KEY }));
@@ -51,3 +44,5 @@ mobileRouter.get(
 		return c.json(data);
 	},
 );
+
+export default mobileRouter;
