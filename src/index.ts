@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import { env } from "./config/env";
 import discordRouter from "./routes/discord";
-import { startScheduler } from "./services/scheduler";
 import mobileRouter from "./routes/mobile";
+import { startScheduler } from "./services/scheduler";
 
 const app = new Hono();
 
