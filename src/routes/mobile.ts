@@ -2,7 +2,7 @@ import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { bearerAuth } from "hono/bearer-auth";
 import { env } from "../config/env";
-import { ohgoService } from "../services/ohgo";
+import { mobileService } from "../services/mobile";
 import {
 	DeviceIdentiySchema,
 	LocationQuerySchema,
@@ -22,26 +22,12 @@ mobileRouter.post("/register", zValidator("json", DeviceIdentiySchema), (c) => {
 });
 
 mobileRouter.get(
-	"/incidents",
+	"/telemetry",
 	zValidator("query", LocationQuerySchema),
 	async (c) => {
 		const query = c.req.valid("query");
-
-		const ohgoParams: Record<string, any> = {
-			"page-all": true,
-		};
-
-		if (query.latitude !== undefined && query.longitude !== undefined) {
-			const offset = query.radiusMiles / 69.0;
-
-			ohgoParams["map-bounds-sw"] =
-				`${query.latitude - offset},${query.longitude - offset}`;
-			ohgoParams["map-bounds-ne"] =
-				`${query.latitude - offset},${query.longitude - offset}`;
-		}
-
-		const data = await ohgoService.getIncidents(ohgoParams);
-		return c.json(data);
+		const data = await mobileService.getGenericTelemetry(query);
+		return c.json({ results: data });
 	},
 );
 
