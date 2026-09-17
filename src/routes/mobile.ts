@@ -45,4 +45,54 @@ mobileRouter.get(
 	},
 );
 
+mobileRouter.get(
+	"slowdowns",
+	zValidator("query", LocationQuerySchema),
+	async (c) => {
+		const query = c.req.valid("query");
+
+		const ohgoParams: Record<string, any> = {
+			"page-all": true,
+		};
+
+		if (query.latitude !== undefined && query.longitude !== undefined) {
+			const offset = query.radiusMiles / 69.0;
+
+			ohgoParams["map-bounds-sw"] =
+				`${query.latitude - offset},${query.longitude - offset}`;
+
+			ohgoParams["map-bounds-ne"] =
+				`${query.latitude - offset},${query.longitude - offset}`;
+		}
+
+		const data = await ohgoService.getDangerousSlowdowns(ohgoParams);
+		return c.json(data);
+	},
+);
+
+mobileRouter.get(
+	"construction",
+	zValidator("query", LocationQuerySchema),
+	async (c) => {
+		const query = c.req.valid("query");
+
+		const ohgoParams: Record<string, any> = {
+			"page-all": true,
+		};
+
+		if (query.latitude !== undefined && query.longitude !== undefined) {
+			const offset = query.radiusMiles / 69.0;
+
+			ohgoParams["map-bounds-sw"] =
+				`${query.latitude - offset},${query.longitude - offset}`;
+
+			ohgoParams["map-bounds-ne"] =
+				`${query.latitude - offset},${query.longitude - offset}`;
+		}
+
+		const data = await ohgoService.getConstruction(ohgoParams);
+		return c.json(data);
+	},
+);
+
 export default mobileRouter;
