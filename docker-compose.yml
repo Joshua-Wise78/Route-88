@@ -29,5 +29,15 @@ services:
     depends_on:
       - postgres
 
+  osrm:
+    image: osrm/osrm-backend
+    container_name: osrm_backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./osrm-data:/data
+    command: "osrm-routed --algorithm mld /data/ohio-latest.osrm"
+
 volumes:
   postgres_data:
