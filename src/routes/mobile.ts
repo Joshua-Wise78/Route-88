@@ -31,4 +31,34 @@ mobileRouter.get(
 	},
 );
 
+mobileRouter.get(
+	"/incidents",
+	zValidator("query", LocationQuerySchema),
+	async (c) => {
+		const query = c.req.valid("query");
+		const data = await mobileService.getIncidents(query);
+		return c.json(data);
+	}
+);
+
+mobileRouter.get(
+	"/slowdowns",
+	zValidator("query", LocationQuerySchema),
+	async (c) => {
+		const query = c.req.valid("query");
+		const data = await mobileService.getSlowdowns(query);
+		return c.json(data);
+	}
+);
+
+mobileRouter.get(
+	"/construction",
+	zValidator("query", LocationQuerySchema),
+	async (c) => {
+		const query = c.req.valid("query");
+		const data = await mobileService.getConstruction(query);
+		return c.json(data);
+	}
+);
+
 export default mobileRouter;

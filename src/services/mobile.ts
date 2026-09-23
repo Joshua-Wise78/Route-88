@@ -5,9 +5,7 @@ import {
 } from "../types/mobile/mobile";
 
 export const mobileService = {
-	async getGenericTelemetry(
-		query: LocationQuerySchema,
-	): Promise<GenericTelemetry[]> {
+	_buildOhgoParams(query: LocationQuerySchema): Record<string, any> {
 		const ohgoParams: Record<string, any> = { "page-all": true };
 
 		if (query.latitude !== undefined && query.longitude !== undefined) {
@@ -19,6 +17,25 @@ export const mobileService = {
 			ohgoParams["map-bounds-ne"] =
 				`${query.latitude + offset},${query.longitude + offset}`;
 		}
+		return ohgoParams;
+	},
+
+	async getIncidents(query: LocationQuerySchema) {
+		return ohgoService.getIncidents(this._buildOhgoParams(query));
+	},
+
+	async getSlowdowns(query: LocationQuerySchema) {
+		return ohgoService.getDangerousSlowdowns(this._buildOhgoParams(query));
+	},
+
+	async getConstruction(query: LocationQuerySchema) {
+		return ohgoService.getConstruction(this._buildOhgoParams(query));
+	},
+
+	async getGenericTelemetry(
+		query: LocationQuerySchema,
+	): Promise<GenericTelemetry[]> {
+		const ohgoParams = this._buildOhgoParams(query);
 
 		const [incidents, slowdowns, construction] = await Promise.all([
 			ohgoService.getIncidents(ohgoParams).catch(() => ({ results: [] })),
