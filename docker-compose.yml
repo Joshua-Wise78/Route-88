@@ -39,5 +39,21 @@ services:
       - ./osrm-data:/data
     command: "osrm-routed --algorithm mld /data/ohio-latest.osrm"
 
+  nominatim:
+    image: mediagis/nominatim:4.4
+    container_name: nominatim_backend
+    restart: unless-stopped
+    ports:
+      - "8082:8080"
+    environment:
+      - PBF_URL=https://download.geofabrik.de/north-america/us/ohio-latest.osm.pbf
+      - REPLICATION_URL=https://download.geofabrik.de/north-america/us/ohio-updates/
+    volumes:
+      - nominatim_data:/var/lib/postgresql/14/main
+      - nominatim_flatnode:/nominatim/flatnode
+    shm_size: 2gb
+
 volumes:
   postgres_data:
+  nominatim_data:
+  nominatim_flatnode:
