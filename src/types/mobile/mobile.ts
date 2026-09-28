@@ -29,6 +29,15 @@ export const GenericTelemetrySchema = z.object({
 	startTime: z.string().optional(),
 });
 
+export const RouteQuerySchema = z.object({
+	startAddress: z.string().min(5, "Start address is required"),
+	endAddress: z.string().min(5, "End address is required"),
+});
+
+export const AutocompleteQuerySchema = z.object({
+	query: z.string().min(2, "Please enter at least 2 characters to search"),
+});
+
 export type GenericTelemetry = z.infer<typeof GenericTelemetrySchema>;
 
 export type DeviceIdentiySchema = z.infer<typeof DeviceIdentiySchema>;
