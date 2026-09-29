@@ -1,9 +1,6 @@
 export const routeService = {
-	async getRoute(startAddress: string, endAddress: string) {
-		const startCoords = await this.geocodeAddress(startAddress);
-		const endCoords = await this.geocodeAddress(endAddress);
-
-		const coordsString = `${startCoords.lon},${startCoords.lat};${endCoords.lon},${endCoords.lat}`;
+	async getRoute(startLat: number, startLon: number, endLat: number, endLon: number) {
+		const coordsString = `${startLon},${startLat};${endLon},${endLat}`;
 		const osrmUrl = `http://osrm:5000/route/v1/driving/${coordsString}?overview=full&geometries=geojson&steps=true`;
 
 		const osrmResponse = await fetch(osrmUrl);
@@ -50,8 +47,8 @@ export const routeService = {
 			distance: route.distance,
 			duration: route.duration,
 			geometry: route.geometry,
-			startLocation: startCoords,
-			endLocaiton: endCoords,
+			startLocation: { lat: startLat, lon: startLon },
+			endLocaiton: { lat: endLat, lon: endLon },
 			steps: turnByTurn,
 		};
 	},

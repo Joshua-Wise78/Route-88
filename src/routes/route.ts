@@ -17,8 +17,10 @@ routeRouter.get(
 		try {
 			const query = c.req.valid("query");
 			const routeData = await routeService.getRoute(
-				query.startAddress,
-				query.endAddress,
+				query.startLat,
+				query.startLon,
+				query.endLat,
+				query.endLon,
 			);
 			return c.json({ success: true, route: routeData });
 		} catch (error: any) {
