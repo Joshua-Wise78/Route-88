@@ -30,8 +30,10 @@ export const GenericTelemetrySchema = z.object({
 });
 
 export const RouteQuerySchema = z.object({
-	startAddress: z.string().min(5, "Start address is required"),
-	endAddress: z.string().min(5, "End address is required"),
+	startLat: z.coerce.number().min(-90).max(90),
+	startLon: z.coerce.number().min(-180).max(180),
+	endLat: z.coerce.number().min(-90).max(90),
+	endLon: z.coerce.number().min(-180).max(180),
 });
 
 export const AutocompleteQuerySchema = z.object({
