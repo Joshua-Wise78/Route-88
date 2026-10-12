@@ -4,6 +4,8 @@
   "type": "module",
   "scripts": {
     "test": "jest",
+    "coverage:funcs": "node scripts/coverage-funcs.js",
+    "test:funcs": "jest && node scripts/coverage-funcs.js",
     "dev": "bun --watch src/index.ts",
     "start": "bun run db:migrate && bun src/index.ts",
     "typecheck": "tsc --noEmit",
@@ -18,7 +20,7 @@
     "drizzle-kit": "^0.18.1",
     "jest": "^30.5.2",
     "ts-jest": "^29.4.14",
-    "typescript": "^7.0.2"
+    "typescript": "5.9.3"
   },
   "peerDependencies": {
     "typescript": "^7.0.2"
