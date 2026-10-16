@@ -3,6 +3,7 @@ process.env.NODE_ENV = "test";
 process.env.DATABASE_URL =
 	"postgres://test_user:test_password@localhost:5432/route88_test";
 process.env.API_KEY = "mock-ohgo-api-key";
+process.env.OHGO_API_KEY = "mock-ohgo-api-key";
 process.env.INTERNAL_API_KEY = "mock-internal-api-key";
 
 process.env.DISCORD_INCIDENTS_WEBHOOK_URL =
