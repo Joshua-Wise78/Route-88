@@ -28,6 +28,10 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .eslintcache
 .cache
 *.tsbuildinfo
+docs/.vitepress/cache
+docs/.vitepress/dist
+docs/.vitepress/.temp
+docs/.vitepress/.local
 
 # IntelliJ based IDEs
 .idea

@@ -1,0 +1,37 @@
+.mermaid-diagram {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background-color: var(--vp-c-bg-soft);
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+.mermaid-diagram svg {
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+/* Ensure descenders (p, g, y, j, q) are never clipped and labels are vertically balanced */
+.mermaid-diagram foreignObject {
+  overflow: visible !important;
+}
+
+.mermaid-diagram .node .label {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 100% !important;
+  text-align: center !important;
+}
+
+.mermaid-diagram .nodeLabel {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1.25 !important;
+  transform: translateY(-2px);
+}
