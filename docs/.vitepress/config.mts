@@ -2,6 +2,7 @@ import { defineConfig } from 'vitepress'
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
+  base: '/Route-88/',
   title: "Route-88",
   description: "High-performance Ohio traffic ingestion, routing, and intelligence platform.",
   
@@ -113,7 +114,7 @@ export default defineConfig({
     },
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/josh-eng-pvt/Route-88' }
+      { icon: 'github', link: 'https://github.com/Joshua-Wise78/Route-88' }
     ],
 
     footer: {
