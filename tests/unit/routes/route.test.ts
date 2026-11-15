@@ -1,11 +1,13 @@
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { Hono } from "hono";
 import routeRouter from "../../../src/routes/route";
+import { mobileService } from "../../../src/services/mobile";
 import { routeService } from "../../../src/services/osrm";
 import { routeCheckService } from "../../../src/services/route-check";
 
 jest.mock("../../../src/services/osrm");
 jest.mock("../../../src/services/route-check");
+jest.mock("../../../src/services/mobile");
 
 describe("Route API Endpoints (route.ts)", () => {
 	let app: Hono;
@@ -23,8 +25,19 @@ describe("Route API Endpoints (route.ts)", () => {
 				duration: 120,
 				geometry: { type: "LineString", coordinates: [[-84, 39], [-83, 39]] },
 				startLocation: { lat: 39, lon: -84 },
+				endLocation: { lat: 39, lon: -83 },
 				endLocaiton: { lat: 39, lon: -83 },
-				steps: [],
+				steps: [
+					{
+						instruction: "Depart towards destination",
+						distanceMeters: 1000,
+						distancemeters: 1000,
+						durationSeconds: 120,
+						location: { lon: -84, lat: 39 },
+						maneuverType: "depart",
+						manueverType: "depart",
+					},
+				],
 			});
 
 			const res = await app.request(
@@ -35,11 +48,57 @@ describe("Route API Endpoints (route.ts)", () => {
 			const data = (await res.json()) as any;
 			expect(data.success).toBe(true);
 			expect(data.route.distance).toBe(1000);
+			expect(data.route.endLocation).toEqual({ lat: 39, lon: -83 });
+			expect(data.route.steps[0].distanceMeters).toBe(1000);
 		});
 
 		it("returns 400 when coordinates are invalid", async () => {
 			const res = await app.request("/api/route/calculate?startLat=999");
 			expect(res.status).toBe(400);
+		});
+	});
+
+	describe("GET /api/route/events and /api/route/events/geojson", () => {
+		it("returns location-based road events near the user without requiring authentication", async () => {
+			jest.mocked(mobileService.getGenericTelemetry).mockResolvedValueOnce([
+				{
+					id: "inc-1",
+					type: "incident",
+					title: "Crash",
+					description: "Shoulder blocked",
+					latitude: 39.96,
+					longitude: -83.0,
+				},
+			]);
+
+			const res = await app.request("/api/route/events?latitude=39.96&longitude=-83.0&radiusMiles=10");
+			expect(res.status).toBe(200);
+			const data = (await res.json()) as any;
+			expect(data.success).toBe(true);
+			expect(data.count).toBe(1);
+			expect(data.results[0].id).toBe("inc-1");
+		});
+
+		it("returns GeoJSON FeatureCollection for direct map consumption", async () => {
+			jest.mocked(mobileService.getGenericTelemetry).mockResolvedValueOnce([
+				{
+					id: "inc-1",
+					type: "incident",
+					title: "Crash",
+					description: "Shoulder blocked",
+					latitude: 39.96,
+					longitude: -83.0,
+				},
+			]);
+
+			const res = await app.request("/api/route/events/geojson?latitude=39.96&longitude=-83.0");
+			expect(res.status).toBe(200);
+			const data = (await res.json()) as any;
+			expect(data.type).toBe("FeatureCollection");
+			expect(data.features).toHaveLength(1);
+			expect(data.features[0].geometry.type).toBe("Point");
+			expect(data.features[0].geometry.coordinates).toEqual([-83.0, 39.96]);
+			expect(data.features[0].properties.id).toBe("inc-1");
 		});
 	});
 
@@ -62,6 +121,7 @@ describe("Route API Endpoints (route.ts)", () => {
 					start: { lat: 39, lon: -84 },
 					end: { lat: 39, lon: -83 },
 					isEstimatedRoute: false,
+					steps: [],
 				},
 				corridorBufferMiles: 0.5,
 				hazards: [],
@@ -104,6 +164,7 @@ describe("Route API Endpoints (route.ts)", () => {
 					start: { lat: 39, lon: -84 },
 					end: { lat: 39, lon: -83 },
 					isEstimatedRoute: false,
+					steps: [],
 				},
 				corridorBufferMiles: 0.5,
 				hazards: [],
@@ -138,6 +199,7 @@ describe("Route API Endpoints (route.ts)", () => {
 					start: { lat: 39, lon: -84 },
 					end: { lat: 39, lon: -83 },
 					isEstimatedRoute: false,
+					steps: [],
 				},
 				corridorBufferMiles: 1.0,
 				hazards: [],

@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { cors } from "hono/cors";
 import { env } from "./config/env";
 import discordRouter from "./routes/discord";
 import mobileRouter from "./routes/mobile";
@@ -6,6 +7,9 @@ import routeRouter from "./routes/route";
 import { startScheduler } from "./services/scheduler";
 
 const app = new Hono();
+
+// Enable CORS for web and mobile frontends
+app.use("/*", cors());
 
 app.get("/", (c) => c.text("Route-88 Backend API is running!"));
 

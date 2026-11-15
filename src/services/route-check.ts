@@ -8,6 +8,7 @@ import type {
 	RouteCheckResult,
 	RouteClearanceStatus,
 	RouteHazard,
+	RouteStepInfo,
 } from "../types/route";
 import {
 	calculateBoundingBox,
@@ -32,6 +33,7 @@ export const routeCheckService = {
 		let startLocation: { lat: number; lon: number };
 		let endLocation: { lat: number; lon: number };
 		let isEstimatedRoute = false;
+		let routeSteps: RouteStepInfo[] | undefined;
 		let geometry:
 			| {
 					type: "LineString";
@@ -39,7 +41,7 @@ export const routeCheckService = {
 			  }
 			| undefined;
 
-		// 1. Resolve Route Geometry
+		// 1. Resolve Route Geometry & Steps
 		if (input.coordinates && input.coordinates.length >= 2) {
 			polylineCoordinates = input.coordinates;
 			const firstCoord = polylineCoordinates[0]!;
@@ -55,6 +57,22 @@ export const routeCheckService = {
 				type: "LineString",
 				coordinates: polylineCoordinates,
 			};
+			routeSteps = [
+				{
+					instruction: "Depart towards destination",
+					distanceMeters: Math.round(totalDistanceMiles * 1609.344),
+					durationSeconds: totalDurationSeconds,
+					location: { lon: firstCoord[0], lat: firstCoord[1] },
+					maneuverType: "depart",
+				},
+				{
+					instruction: "Arrive at destination",
+					distanceMeters: 0,
+					durationSeconds: 0,
+					location: { lon: lastCoord[0], lat: lastCoord[1] },
+					maneuverType: "arrive",
+				},
+			];
 		} else if (
 			input.startLat !== undefined &&
 			input.startLon !== undefined &&
@@ -77,6 +95,17 @@ export const routeCheckService = {
 					Math.round((routeData.distance / 1609.344) * 10) / 10;
 				totalDurationSeconds = Math.round(routeData.duration);
 				geometry = routeData.geometry;
+				isEstimatedRoute = !!routeData.isEstimated;
+				routeSteps = routeData.steps.map((s) => ({
+					instruction: s.instruction,
+					distanceMeters: s.distanceMeters ?? s.distancemeters,
+					durationSeconds: s.durationSeconds,
+					location: s.location,
+					maneuverType: s.maneuverType ?? s.manueverType,
+					...(s.maneuverModifier || s.manueverModifier
+						? { maneuverModifier: s.maneuverModifier || s.manueverModifier }
+						: {}),
+				}));
 			} catch (osrmError) {
 				// Fallback to straight-line route corridor if OSRM is unreachable
 				console.warn(
@@ -102,6 +131,22 @@ export const routeCheckService = {
 					type: "LineString",
 					coordinates: polylineCoordinates,
 				};
+				routeSteps = [
+					{
+						instruction: "Depart towards destination",
+						distanceMeters: Math.round(totalDistanceMiles * 1609.344),
+						durationSeconds: totalDurationSeconds,
+						location: { lon: input.startLon, lat: input.startLat },
+						maneuverType: "depart",
+					},
+					{
+						instruction: "Arrive at destination",
+						distanceMeters: 0,
+						durationSeconds: 0,
+						location: { lon: input.endLon, lat: input.endLat },
+						maneuverType: "arrive",
+					},
+				];
 			}
 		} else {
 			throw new Error(
@@ -285,6 +330,7 @@ export const routeCheckService = {
 				end: endLocation,
 				isEstimatedRoute,
 				geometry,
+				steps: routeSteps,
 			},
 			corridorBufferMiles: bufferMiles,
 			hazards,

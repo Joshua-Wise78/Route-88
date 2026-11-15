@@ -15,7 +15,7 @@ describe("Route Check Service (route-check.ts)", () => {
 		jest.clearAllMocks();
 	});
 
-	it("returns clear status when no hazards exist along the corridor", async () => {
+	it("returns clear status when no hazards exist along the corridor and returns steps", async () => {
 		jest.mocked(routeService.getRoute).mockResolvedValueOnce({
 			distance: 160934.4, // ~100 miles in meters
 			duration: 5400,
@@ -28,8 +28,19 @@ describe("Route Check Service (route-check.ts)", () => {
 				],
 			},
 			startLocation: { lat: 39.0, lon: -83.0 },
+			endLocation: { lat: 40.0, lon: -84.0 },
 			endLocaiton: { lat: 40.0, lon: -84.0 },
-			steps: [],
+			steps: [
+				{
+					instruction: "Depart towards destination",
+					distanceMeters: 1000,
+					distancemeters: 1000,
+					durationSeconds: 60,
+					location: { lon: -83.0, lat: 39.0 },
+					maneuverType: "depart",
+					manueverType: "depart",
+				},
+			],
 		});
 
 		jest.mocked(ohgoService.getIncidents).mockResolvedValueOnce({
@@ -68,6 +79,8 @@ describe("Route Check Service (route-check.ts)", () => {
 		expect(result.summary.totalHazards).toBe(0);
 		expect(result.hazards).toHaveLength(0);
 		expect(result.route.isEstimatedRoute).toBe(false);
+		expect(result.route.steps).toBeDefined();
+		expect(result.route.steps![0]!.instruction).toBe("Depart towards destination");
 	});
 
 	it("detects hazards within buffer and orders them by mile marker on route", async () => {
@@ -86,6 +99,7 @@ describe("Route Check Service (route-check.ts)", () => {
 				coordinates: polyline,
 			},
 			startLocation: { lat: 39.0, lon: -84.0 },
+			endLocation: { lat: 39.0, lon: -83.0 },
 			endLocaiton: { lat: 39.0, lon: -83.0 },
 			steps: [],
 		});
@@ -189,6 +203,7 @@ describe("Route Check Service (route-check.ts)", () => {
 				],
 			},
 			startLocation: { lat: 39.0, lon: -83.0 },
+			endLocation: { lat: 39.5, lon: -83.0 },
 			endLocaiton: { lat: 39.5, lon: -83.0 },
 			steps: [],
 		});
@@ -280,6 +295,7 @@ describe("Route Check Service (route-check.ts)", () => {
 		expect(result.success).toBe(true);
 		expect(result.route.isEstimatedRoute).toBe(true);
 		expect(result.isClear).toBe(true);
+		expect(result.route.steps).toHaveLength(2);
 	});
 
 	it("accepts custom polyline coordinates directly", async () => {
@@ -322,5 +338,6 @@ describe("Route Check Service (route-check.ts)", () => {
 		expect(result.route.start.lon).toBe(-84.5);
 		expect(result.route.end.lat).toBe(39.9);
 		expect(result.route.end.lon).toBe(-83.5);
+		expect(result.route.steps).toHaveLength(2);
 	});
 });

@@ -67,6 +67,18 @@ export interface RouteCheckSummary {
 	message: string;
 }
 
+export interface RouteStepInfo {
+	instruction: string;
+	distanceMeters: number;
+	durationSeconds: number;
+	location: {
+		lon: number;
+		lat: number;
+	};
+	maneuverType: string;
+	maneuverModifier?: string;
+}
+
 export interface RouteCheckResult {
 	success: boolean;
 	isClear: boolean;
@@ -82,6 +94,7 @@ export interface RouteCheckResult {
 			type: "LineString";
 			coordinates: [number, number][];
 		};
+		steps?: RouteStepInfo[];
 	};
 	corridorBufferMiles: number;
 	hazards: RouteHazard[];
