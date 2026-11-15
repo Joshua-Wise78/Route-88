@@ -62,6 +62,7 @@ export default defineConfig({
           collapsed: false,
           items: [
             { text: 'Routing Overview', link: '/features/routing/overview' },
+            { text: 'Is My Route Clear?', link: '/features/routing/route-hazard-check' },
             { text: 'Turn-by-Turn Routing', link: '/features/routing/route-calculation' },
             { text: 'Address Autocomplete', link: '/features/routing/autocomplete' },
             { text: 'Geocoding Resolution', link: '/features/routing/geocoding' }

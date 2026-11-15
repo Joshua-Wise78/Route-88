@@ -13,24 +13,28 @@ app.route("/api/discord", discordRouter);
 app.route("/api/mobile", mobileRouter);
 app.route("/api/route", routeRouter);
 
-// Start the background jobs
-startScheduler();
+// Start the background jobs if enabled
+if (env.ENABLE_SCHEDULER) {
+	startScheduler();
+} else {
+	console.log("Background scheduler is disabled via ENABLE_SCHEDULER=false");
+}
 
-console.log(`Server is starting...`);
+console.log(`Server is starting on port ${env.PORT}...`);
 console.log(
-	`Loaded Discord Webhook Incidents ${!!env.DISCORD_INCIDENTS_WEBHOOK_URL}`,
+	`Loaded Discord Webhook Incidents: ${!!env.DISCORD_INCIDENTS_WEBHOOK_URL}`,
 );
 console.log(
-	`Loaded Discord Webhook Construction ${!!env.DISCORD_CONSTRUCTION_WEBHOOK_URL}`,
+	`Loaded Discord Webhook Construction: ${!!env.DISCORD_CONSTRUCTION_WEBHOOK_URL}`,
 );
 console.log(
-	`Loaded Discord Webhook Slowdowns ${!!env.DISCORD_SLOWDOWNS_WEBHOOK_URL}`,
+	`Loaded Discord Webhook Slowdowns: ${!!env.DISCORD_SLOWDOWNS_WEBHOOK_URL}`,
 );
 console.log(
-	`Loaded Discord Webhook Daily Feed ${!!env.DISCORD_DAILY_WEBHOOK_URL}`,
+	`Loaded Discord Webhook Daily Feed: ${!!env.DISCORD_DAILY_WEBHOOK_URL}`,
 );
 
 export default {
-	port: 3333,
+	port: env.PORT,
 	fetch: app.fetch,
 };

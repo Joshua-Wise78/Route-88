@@ -1,10 +1,18 @@
+import { env } from "../config/env";
+
 export const routeService = {
-	async getRoute(startLat: number, startLon: number, endLat: number, endLon: number) {
+	async getRoute(
+		startLat: number,
+		startLon: number,
+		endLat: number,
+		endLon: number,
+	) {
 		const coordsString = `${startLon},${startLat};${endLon},${endLat}`;
-		const osrmUrl = `http://osrm:5000/route/v1/driving/${coordsString}?overview=full&geometries=geojson&steps=true`;
+		const baseOsrm = env.OSRM_URL.replace(/\/+$/, "");
+		const osrmUrl = `${baseOsrm}/route/v1/driving/${coordsString}?overview=full&geometries=geojson&steps=true`;
 
 		const osrmResponse = await fetch(osrmUrl);
-		const osrmData = await osrmResponse.json();
+		const osrmData = (await osrmResponse.json()) as any;
 
 		if (
 			osrmData.code !== "Ok" ||
@@ -15,7 +23,7 @@ export const routeService = {
 		}
 
 		const route = osrmData.routes[0];
-		const rawSteps = route.legs[0]?.steps || [];
+		const rawSteps = route.legs?.[0]?.steps || [];
 
 		const turnByTurn = rawSteps.map((step: any) => {
 			const type = step.maneuver.type;
@@ -46,7 +54,10 @@ export const routeService = {
 		return {
 			distance: route.distance,
 			duration: route.duration,
-			geometry: route.geometry,
+			geometry: route.geometry as {
+				type: "LineString";
+				coordinates: [number, number][];
+			},
 			startLocation: { lat: startLat, lon: startLon },
 			endLocaiton: { lat: endLat, lon: endLon },
 			steps: turnByTurn,
@@ -54,14 +65,15 @@ export const routeService = {
 	},
 
 	async autocompleteAddress(query: string) {
-		const url = new URL("http://nominatim:8080/search");
+		const baseNominatim = env.NOMINATIM_URL.replace(/\/+$/, "");
+		const url = new URL(`${baseNominatim}/search`);
 		url.searchParams.set("q", query);
 		url.searchParams.set("format", "json");
 		url.searchParams.set("limit", "5");
 		url.searchParams.set("addressdetails", "1");
 
 		const response = await fetch(url.toString());
-		const data = await response.json();
+		const data = (await response.json()) as any[];
 
 		return data.map((item: any) => ({
 			id: item.place_id,
@@ -74,13 +86,14 @@ export const routeService = {
 	},
 
 	async geocodeAddress(address: string) {
-		const url = new URL("http://nominatim:8080/search");
+		const baseNominatim = env.NOMINATIM_URL.replace(/\/+$/, "");
+		const url = new URL(`${baseNominatim}/search`);
 		url.searchParams.set("q", address);
 		url.searchParams.set("format", "json");
 		url.searchParams.set("limit", "1");
 
 		const response = await fetch(url.toString());
-		const data = await response.json();
+		const data = (await response.json()) as any[];
 
 		if (!data || data.length === 0) {
 			throw new Error(`Address not found: ${address}`);
